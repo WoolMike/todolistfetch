@@ -1,141 +1,161 @@
-import React, { useState,useEffect} from "react";
+import React, { useEffect, useState } from "react";
 
+const Home = () => {
+	const [tareas, setTareas] = useState([]);
+	const [label, setLabel] = useState("");
 
+	// Método GET para obtener array con todas las tareas existentes para mi usuario
+	async function createUser() {
+		try {
+			const response = await fetch('https://playground.4geeks.com/todo/users/woolmike', {
+				method: "POST",
+				body: JSON.stringify([]),
+				headers: {
+					"Content-Type": "application/json"
+				}
+			})
+			console.log(response)
+			console.log(response.ok); // Will be true if the response is successful
+			console.log(response.status); // The status code=200 or code=400 etc.
+			const data = await response.json()
+			console.log(data);
+			if (!response.ok) {
+				throw new Error(data.msg)
+			}
+		}
+		catch (error) {
+			console.error(error)
+		}
+		console.log("createUser function ran")
+	}
 
-//include images into your bundle
+	const getAllData = async () => {
+		try {
+			const response = await fetch(`https://playground.4geeks.com/todo/users/woolmike`);
+			if (response.ok) {
+				const dataJson = await response.json();
+				setTareas(Array.isArray(dataJson.todos) ? dataJson.todos : []);
+				console.log("Datos obtenidos:", dataJson.todos);
+			} else {
+				console.error("Error al recuperar datos:", response.statusText);
+			}
+		} catch (error) {
+			console.error("Error al recuperar datos:", error);
+		}
+	};
 
-//create your first component
-const ToDoList = () => {
+	// Método POST para añadir nuevas tareas al array de mi usuario
+	const createNewElement = async (event) => {
+		event.preventDefault();
+		const newTask = { label, is_done: false };
+		try {
+			const response = await fetch(`https://playground.4geeks.com/todo/todos/woolmike`, {
+				method: 'POST',
+				body: JSON.stringify(newTask),
+				headers: { "Content-Type": "application/json" }
+			});
 
-	const [task, setTask] = useState('');
-	const [taskList, setTaskList] = useState([]);
+			if (response.ok) {
+				const dataJson = await response.json();
+				setTareas([...tareas, dataJson]);
+				console.log("Tarea creada:", dataJson);
+			} else {
+				console.error("Error al crear tarea:", response.statusText);
+			}
+		} catch (error) {
+			console.error("Error al crear tarea:", error);
+		}
+	};
 
-    useEffect(() => {
-        fetchTodos();
-    }, []);
+	// Método DELETE para eliminar una tarea específica con un botón
+	const deleteElement = async (todoId) => {
+		try {
+			const response = await fetch(`https://playground.4geeks.com/todo/todos/${todoId}`, {
+				method: 'DELETE'
+			});
 
-    const fetchTodos = () => {
-        fetch('https://playground.4geeks.com/apis/fake/todos/user/miguel')
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Network response was not ok.');
-            })
-            .then(data => {
-                const todosData = data.map(taskList => ({ ...taskList, label: taskList.label }));
-                setTaskList(todosData);
-            })
-            .catch(error => console.error('Error fetching todos:', error));
-    };
+			if (response.ok) {
+				setTareas(tareas.filter((item) => item.id !== todoId));
+				console.log("Tarea eliminada:", todoId);
+			} else {
+				console.error("Error al eliminar tarea:", response.statusText);
+			}
+		} catch (error) {
+			console.error("Error al eliminar tarea:", error);
+		}
+	};
 
-    const addTodo = () => {
-        const newTodo = { label: task, done: false };
-        const updatedTodos = [...taskList, newTodo];
-        setTaskList(updatedTodos); // Update todos in the local state
-        updateTodoList(updatedTodos); // Update todos in the backen
-    };
+	// Método DELETE para eliminar TODAS las tareas del array de mi usuario
+	const deleteAllElements = async () => {
+		try {
+			// 1.-Envío DELETE para cada tarea con mapeo y el "id" dinámico
+			const deletePromises = tareas.map((item) =>
+				fetch(`https://playground.4geeks.com/todo/todos/${item.id}`, { method: 'DELETE' })
+			);
 
-    const deleteAll=()=>{
-        setTaskList([]);
-        updateTodoList([]);
+			// 2.- Esperar a que todas las peticiones DELETE se completen
+			await Promise.all(deletePromises);
 
-    }
+			// 3.- Actualizar el array de "tareas"
+			setTareas([]);
+			console.log("Todas las tareas han sido eliminadas");
+		} catch (error) {
+			console.error("Error al eliminar todas las tareas:", error);
+		}
+	};
 
-    const deleteTodo = (index) => {
-        const updatedTodos = taskList.filter((_, i) => i !== index);
-        setTaskList(updatedTodos); // Update todos in the local state
-        updateTodoList(updatedTodos); // Update todos in the backend
-    };
+	useEffect(() => {
+		getAllData();
+		createUser();
+	}, []);
 
-    const updateTodoList = (updatedTodos) => {
-        fetch('https://playground.4geeks.com/apis/fake/todos/user/miguel', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(updatedTodos)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('List updated:', data);
-        })
-        .catch(error => console.error('Error updating todo list:', error));
-    };
+	useEffect(() => {
+		setLabel("");
+	}, [tareas]);
 
-	return (<>
-		<div className="text-center">
-            <div className="container">
-                <div className="d-flex">
-                    <div className="col-7 text-end">
-                <h1>To do list</h1>
-                </div>
-                <div className="col">
-                    <div className="mt-2">
-                        <button type="button" class="btn btn-danger" onClick={()=>deleteAll()}>Delete all</button>
-                    </div>
-                    
-                </div>
-                </div>
-                
-                
-            </div>
-			
-			<input type="text" placeholder="Task" onChange={(evento) => setTask(evento.target.value)} 
-            Value={task}
-            onKeyDown={(evento)=>{
-                if(evento.target.value!=false){
-                   if(evento.key==="Enter")
-                {
-                    addTodo();
-                    evento.target.value=""
-                } 
-                }
-            }}
-             />
-			{
-				taskList.map((toDo, index) => {
-					return <div className="container" key={index}>
-						<div className="col-align-self-center">
-							<div className="card mt-3">
-								<div className="card-body">
-									<div className="d-flex">
-										<div>
-											<div className="col text-start fs-1">
-												{toDo.label}
-											</div>
-										</div>
-										<div className="col align-self-end text-end">
-											<div className="col align-self-end text-end">
-												<div className="hidden">
-													<i className="fa-solid fa-xmark fs-1 " onClick={()=>deleteTodo(index)}></i>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div>
-						</div>
-						<p></p>
+	return (
+		<div className="container text-center">
+			<div className="col-aling-self-center">
+				<div>
+				<form onSubmit={createNewElement}>
+					<div className="mb-3">
+						<label className="form-label"><strong>To do list</strong></label>
+						<input
+							placeholder="Type the new to do"
+							value={label}
+							className="form-control"
+							aria-describedby="emailHelp"
+							onChange={(event) => setLabel(event.target.value)}
+						/>
 					</div>
-
-				})}
-
-			<div className="container">
-				<p className="text-start ml-4">{taskList.length} items left</p>
+					<button type="submit" className="btn btn btn-primary mb-3">Enter</button>
+				</form>
+				<div className="w-100 m-auto">
+					<ol>
+						{tareas.map((item, index) => (
+							<li key={index}>
+								{item.label}
+								<button
+									className="btn btn-success btn-sm ms-2"
+									onClick={() => deleteElement(item.id)}
+								>
+									Done
+								</button>
+							</li>
+						))}
+					</ol>
+					<button
+						className="btn btn-danger"
+						onClick={deleteAllElements}
+					><strong>complete all todos</strong>
+					</button>
+				</div>
 			</div>
-
+			</div>
+			
 		</div>
 
-	</>
 	);
 };
 
-export default ToDoList;
+export default Home;
