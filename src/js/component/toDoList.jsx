@@ -119,21 +119,22 @@ const Home = () => {
 				<div>
 				<form onSubmit={createNewElement}>
 					<div className="mb-3">
-						<label className="form-label"><strong>To do list</strong></label>
-						<input
+						<label className="form-label"><h1>To do list</h1></label>
+						<div>
+							<input
 							placeholder="Type the new to do"
 							value={label}
-							className="form-control"
-							aria-describedby="emailHelp"
 							onChange={(event) => setLabel(event.target.value)}
 						/>
+						</div>
+						
 					</div>
 					<button type="submit" className="btn btn btn-primary mb-3">Enter</button>
 				</form>
 				<div className="w-100 m-auto">
-					<ol>
+					<div>
 						{tareas.map((item, index) => (
-							<li key={index}>
+							<li className="mb-1">
 								{item.label}
 								<button
 									className="btn btn-success btn-sm ms-2"
@@ -143,12 +144,15 @@ const Home = () => {
 								</button>
 							</li>
 						))}
-					</ol>
+					</div>
+						
+				
 					<button
-						className="btn btn-danger"
+						className="btn btn-danger mt -2 mb-2"
 						onClick={deleteAllElements}
-					><strong>complete all todos</strong>
+					><strong>Complete all todos</strong>
 					</button>
+					<h3>Todos to complete  {tareas.length}</h3>
 				</div>
 			</div>
 			</div>
