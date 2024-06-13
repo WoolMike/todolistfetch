@@ -4,7 +4,7 @@ const Home = () => {
 	const [tareas, setTareas] = useState([]);
 	const [label, setLabel] = useState("");
 
-	// Método GET para obtener array con todas las tareas existentes para mi usuario
+	
 	async function createUser() {
 		try {
 			const response = await fetch('https://playground.4geeks.com/todo/users/woolmike', {
@@ -37,14 +37,14 @@ const Home = () => {
 				setTareas(Array.isArray(dataJson.todos) ? dataJson.todos : []);
 				console.log("Datos obtenidos:", dataJson.todos);
 			} else {
-				console.error("Error al recuperar datos:", response.statusText);
+				console.error("Error data", response.statusText);
 			}
 		} catch (error) {
-			console.error("Error al recuperar datos:", error);
+			console.error("Errodata", error);
 		}
 	};
 
-	// Método POST para añadir nuevas tareas al array de mi usuario
+	
 	const createNewElement = async (event) => {
 		event.preventDefault();
 		const newTask = { label, is_done: false };
@@ -58,12 +58,12 @@ const Home = () => {
 			if (response.ok) {
 				const dataJson = await response.json();
 				setTareas([...tareas, dataJson]);
-				console.log("Tarea creada:", dataJson);
+				console.log("created", dataJson);
 			} else {
-				console.error("Error al crear tarea:", response.statusText);
+				console.error("no created", response.statusText);
 			}
 		} catch (error) {
-			console.error("Error al crear tarea:", error);
+			console.error("No created", error);
 		}
 	};
 
@@ -78,29 +78,24 @@ const Home = () => {
 				setTareas(tareas.filter((item) => item.id !== todoId));
 				console.log("Tarea eliminada:", todoId);
 			} else {
-				console.error("Error al eliminar tarea:", response.statusText);
+				console.error("No deleted", response.statusText);
 			}
 		} catch (error) {
-			console.error("Error al eliminar tarea:", error);
+			console.error("NO deleted", error);
 		}
 	};
 
-	// Método DELETE para eliminar TODAS las tareas del array de mi usuario
+
 	const deleteAllElements = async () => {
 		try {
-			// 1.-Envío DELETE para cada tarea con mapeo y el "id" dinámico
 			const deletePromises = tareas.map((item) =>
 				fetch(`https://playground.4geeks.com/todo/todos/${item.id}`, { method: 'DELETE' })
 			);
-
-			// 2.- Esperar a que todas las peticiones DELETE se completen
 			await Promise.all(deletePromises);
-
-			// 3.- Actualizar el array de "tareas"
 			setTareas([]);
-			console.log("Todas las tareas han sido eliminadas");
+			console.log("Todo list deleted");
 		} catch (error) {
-			console.error("Error al eliminar todas las tareas:", error);
+			console.error("todo list no deleted", error);
 		}
 	};
 
